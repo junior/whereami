@@ -19,6 +19,9 @@ spec:
         image: ghcr.io/junior/whereami:latest
         ports:
         - containerPort: 80
+        env:
+        - name: IPINFO_TOKEN
+          value: ""
         resources:
           requests:
             memory: "32Mi"

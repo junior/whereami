@@ -12,10 +12,18 @@ A React-based web application that displays IP information and identifies the cl
 
 ## Technologies
 
-- React 18
+- React 19
 - Node.js
 - Nginx
 - Docker
+
+## Configuration
+
+### IPInfo Token
+
+The application uses ipinfo.io to fetch IP information. You can configure your own token using the `IPINFO_TOKEN` environment variable to avoid reach limits.:
+
+- **Custom**: Set `IPINFO_TOKEN` environment variable
 
 ## Quickstart
 
@@ -27,6 +35,12 @@ A React-based web application that displays IP information and identifies the cl
    docker run --rm -it -p 8000:80 ghcr.io/junior/whereami
    ```
 
+   Or with a custom IPInfo token:
+
+   ```bash
+   docker run --rm -it -p 8000:80 -e IPINFO_TOKEN=your_token_here ghcr.io/junior/whereami
+   ```
+
 1. Open your browser and navigate to `http://localhost:8000` to see the application in action.
 
 ### Kubernetes Deployment (Quick)
@@ -35,6 +49,12 @@ A React-based web application that displays IP information and identifies the cl
 
    ```bash
    kubectl run whereami --image=ghcr.io/junior/whereami --port=80
+   ```
+
+   or with a custom IPInfo token:
+
+   ```bash
+   kubectl run whereami --image=ghcr.io/junior/whereami --port=80 --env="IPINFO_TOKEN=your_token_here"
    ```
 
 1. Temporary access to the application:

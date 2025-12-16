@@ -1,6 +1,8 @@
 #!/bin/sh
 set -euo pipefail
 
-wget 'https://ipinfo.io/json?token=5915d8f95c120e' -q -O ipinfo.json -P /usr/share/nginx/html/
+IPINFO_TOKEN="${IPINFO_TOKEN:-}"
+
+wget "https://ipinfo.io/json?token=${IPINFO_TOKEN}" -q -O ipinfo.json -P /usr/share/nginx/html/
 
 exec "$@"
