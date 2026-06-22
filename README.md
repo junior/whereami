@@ -40,8 +40,9 @@ npm install
 npm run dev        # Vite dev server → http://localhost:3000
 ```
 
-`npm run build` emits static files to `dist/`; `npm run lint` runs ESLint. In dev the app
-serves the bundled `public/ipinfo.json` sample, so the card is populated without a token.
+`npm run build` emits static files to `dist/`; `npm run lint` runs ESLint; `npm test` runs
+the Vitest unit tests. In dev the app serves the bundled `public/ipinfo.json` sample, so the
+card is populated without a token.
 
 ## Kubernetes
 
@@ -52,8 +53,8 @@ kubectl run whereami --image=ghcr.io/junior/whereami --port=8080
 kubectl port-forward pod/whereami 8000:8080      # → http://localhost:8000
 ```
 
-Persistent — the manifests in [`k8s/`](k8s/) run as a non-root user, drop all Linux
-capabilities, and add readiness/liveness probes:
+Persistent — the manifests in [`k8s/`](k8s/) run as a non-root user with a read-only root
+filesystem, drop all Linux capabilities, and add readiness/liveness probes:
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/junior/whereami/main/k8s/deployment.yaml
@@ -87,6 +88,20 @@ docker run --rm -it -p 8000:8080 whereami
 docker buildx build --push --platform linux/amd64,linux/arm64 \
   -t your-registry/whereami:latest .
 ```
+
+## Releasing
+
+Images are published to **GitHub Packages (GHCR)** by
+[`.github/workflows/release.yml`](.github/workflows/release.yml) — multi-platform
+(`linux/amd64`, `linux/arm64`), tagged `latest` plus the semver version:
+
+```bash
+git tag v1.0.0 && git push origin v1.0.0   # → ghcr.io/junior/whereami:1.0.0 + :latest
+```
+
+Or run it manually (Actions → **Publish image** → Run workflow) to refresh `:latest`. The
+first publish creates the package; make it public in the repo's **Packages** settings for
+anonymous `docker pull`.
 
 ## Tech
 
