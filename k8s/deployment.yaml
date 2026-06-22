@@ -14,18 +14,48 @@ spec:
       labels:
         app: whereami
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        seccompProfile:
+          type: RuntimeDefault
       containers:
-      - name: whereami
-        image: ghcr.io/junior/whereami:latest
-        ports:
-        - containerPort: 80
-        env:
-        - name: IPINFO_TOKEN
-          value: ""
-        resources:
-          requests:
-            memory: "32Mi"
-            cpu: "250m"
-          limits:
-            memory: "64Mi"
-            cpu: "500m"
+        - name: whereami
+          image: ghcr.io/junior/whereami:latest
+          ports:
+            - containerPort: 8080
+          env:
+            # Optional: create with
+            #   kubectl create secret generic whereami --from-literal=ipinfo-token=YOUR_TOKEN
+            - name: IPINFO_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: whereami
+                  key: ipinfo-token
+                  optional: true
+          securityContext:
+            allowPrivilegeEscalation: false
+            # readOnlyRootFilesystem would need writable mounts for nginx temp dirs
+            # and the ipinfo.json refresh; left off to keep the demo simple.
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 20
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "50m"
+            limits:
+              memory: "64Mi"
+              cpu: "250m"

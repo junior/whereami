@@ -1,38 +1,23 @@
-# syntax=docker/dockerfile:1.6
+# syntax=docker/dockerfile:1
 
-# Builder
-FROM node:20-bullseye AS development
-
+# --- build the static site ---
+FROM node:22-alpine AS build
 WORKDIR /app
-
-COPY package.json /app/package.json
-COPY package-lock.json /app/package-lock.json
-
-RUN npm install
-RUN npm ci --only=production
-
-COPY . /app
-
-ENV CI=true
-ENV PORT=3000
-
-CMD ["npm", "start"]
-
-# Build
-FROM development AS build
-
-RUN npm install --include=dev
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
 RUN npm run build
 
-# App
-FROM nginx:alpine
-
-WORKDIR /usr/share/nginx/html
-
-COPY --from=build /app/nginx/nginx.conf /etc/nginx/conf.d/default.conf
-RUN rm -rf ./*
-COPY --from=build /app/build .
-COPY --chmod=0755 entrypoint.sh /usr/local/bin/
-
+# --- serve it with a non-root nginx (listens on 8080 as uid 101) ---
+FROM nginxinc/nginx-unprivileged:alpine AS runtime
+USER root
+COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
+RUN rm -rf /usr/share/nginx/html/*
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
+# entrypoint (running as 101) refreshes ipinfo.json in here at startup
+RUN chown -R 101:101 /usr/share/nginx/html
+USER 101
+EXPOSE 8080
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]

@@ -1,0 +1,10 @@
+{
+  "ip": "192.0.2.42",
+  "hostname": "demo.example.com",
+  "city": "Ashburn",
+  "region": "Virginia",
+  "country": "US",
+  "org": "AS31898 Oracle Corporation",
+  "postal": "20149",
+  "timezone": "America/New_York"
+}

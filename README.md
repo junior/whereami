@@ -1,160 +1,97 @@
-# WhereAmI - MultiCloud Demo App
+# Where am I? — MultiCloud demo
 
-A React-based web application that displays IP information and identifies the cloud provider based on the IP address. This app demonstrates multi-cloud deployment capabilities.
+A small React app that, on startup, looks up the **server's own** IP details and shows which
+cloud or network it is running in — with the matching provider logo over an animated cloud
+backdrop. Deploy the same image to AWS, Azure, OCI, a Raspberry Pi, or your laptop and it
+tells you where it landed.
 
-## Features
+![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
+![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![Vite 6](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)
+![CI](https://github.com/junior/whereami/actions/workflows/ci.yml/badge.svg)
 
-- Fetches IP information from ipinfo.io
-- Displays city, region, IP, and hostname
-- Identifies cloud providers (Oracle, Azure, AWS, Akamai, etc.) with corresponding logos
-- Animated cloud background
-- Responsive design
+![WhereAmI screenshot](docs/screenshot.png)
 
-## Technologies
+## How it works
 
-- React 19
-- Node.js
-- Nginx
-- Docker
+At container start, [`entrypoint.sh`](entrypoint.sh) fetches the server's public IP details
+from [ipinfo.io](https://ipinfo.io) into a static `ipinfo.json`. The React app reads that file
+and maps the network's AS number to a provider logo (Oracle, AWS, Azure, Akamai, Cloudflare,
+…). If the lookup fails (offline, rate-limited), a bundled placeholder is served so the app
+still starts instead of crash-looping.
 
-## Configuration
+## Quickstart (Docker)
 
-### IPInfo Token
+```bash
+docker run --rm -it -p 8000:8080 ghcr.io/junior/whereami
+# → open http://localhost:8000
+```
 
-The application uses ipinfo.io to fetch IP information. You can configure your own token using the `IPINFO_TOKEN` environment variable to avoid reach limits.:
+With your own ipinfo.io token (higher rate limits):
 
-- **Custom**: Set `IPINFO_TOKEN` environment variable
-
-## Quickstart
-
-### Using Docker
-
-1. Run the application using Docker:
-
-   ```bash
-   docker run --rm -it -p 8000:80 ghcr.io/junior/whereami
-   ```
-
-   Or with a custom IPInfo token:
-
-   ```bash
-   docker run --rm -it -p 8000:80 -e IPINFO_TOKEN=your_token_here ghcr.io/junior/whereami
-   ```
-
-1. Open your browser and navigate to `http://localhost:8000` to see the application in action.
-
-### Kubernetes Deployment (Quick)
-
-1. Run container on the Kubernetes cluster:
-
-   ```bash
-   kubectl run whereami --image=ghcr.io/junior/whereami --port=80
-   ```
-
-   or with a custom IPInfo token:
-
-   ```bash
-   kubectl run whereami --image=ghcr.io/junior/whereami --port=80 --env="IPINFO_TOKEN=your_token_here"
-   ```
-
-1. Temporary access to the application:
-
-   ```bash
-   kubectl port-forward pod/whereami 8000:80
-   ```
-
-1. Open your browser and navigate to `http://localhost:8000` to see the application in action.
-
-### Kubernetes Deployment (Persistent)
-
-1. Apply the Kubernetes manifests:
-
-   Deployment
-
-   ```bash
-   kubectl apply -f https://raw.githubusercontent.com/junior/whereami/main/k8s/deployment.yaml
-   ```
-
-   Service
-
-   ```bash
-   kubectl apply -f https://raw.githubusercontent.com/junior/whereami/main/k8s/service.yaml
-   ```
-
-   Optionally, if your cluster supports it, create a LoadBalancer service:
-
-   ```bash
-   kubectl expose deployment whereami-lb --type=LoadBalancer --port=80
-   ```
-
-1. Create an ingress to expose the application:
-
-   ```bash
-   kubectl apply -f https://raw.githubusercontent.com/junior/whereami/main/k8s/ingress.yaml
-   ```
-
-1. Check the deployment status:
-
-   ```bash
-   kubectl get pods
-   kubectl get services
-   kubectl get ingress
-   ```
-
-1. Access the application via the ingress URL or the service IP address.
+```bash
+docker run --rm -it -p 8000:8080 -e IPINFO_TOKEN=your_token ghcr.io/junior/whereami
+```
 
 ## Development
 
-1. Clone the repository:
+```bash
+npm install
+npm run dev        # Vite dev server → http://localhost:3000
+```
 
-   ```bash
-   git clone https://github.com/junior/whereami.git
-   cd whereami
-   ```
+`npm run build` emits static files to `dist/`; `npm run lint` runs ESLint. In dev the app
+serves the bundled `public/ipinfo.json` sample, so the card is populated without a token.
 
-1. Install dependencies:
+## Kubernetes
 
-   ```bash
-   npm install
-   ```
+Quick run:
 
-1. Start the development server:
+```bash
+kubectl run whereami --image=ghcr.io/junior/whereami --port=8080
+kubectl port-forward pod/whereami 8000:8080      # → http://localhost:8000
+```
 
-   ```bash
-   npm start
-   ```
+Persistent — the manifests in [`k8s/`](k8s/) run as a non-root user, drop all Linux
+capabilities, and add readiness/liveness probes:
 
-1. Open your browser and navigate to `http://localhost:3000` to see the application in action.
+```bash
+kubectl apply -f https://raw.githubusercontent.com/junior/whereami/main/k8s/deployment.yaml
+kubectl apply -f https://raw.githubusercontent.com/junior/whereami/main/k8s/service.yaml
+kubectl apply -f https://raw.githubusercontent.com/junior/whereami/main/k8s/ingress.yaml
+```
 
-## Build Container (Single platform)
+To pass an ipinfo.io token, create a Secret (the Deployment reads it, `optional: true`):
 
-1. Build the Docker image:
+```bash
+kubectl create secret generic whereami --from-literal=ipinfo-token=your_token
+```
 
-   ```bash
-   docker build -t whereami .
-   ```
+## Configuration
 
-1. Run the Docker container:
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `IPINFO_TOKEN` | _(empty)_ | ipinfo.io API token to raise the request rate limit. Unauthenticated works for light use. |
 
-   ```bash
-   docker run --rm -it -p 8000:80 whereami
-   ```
+The container listens on **8080** as a non-root user. The token is used server-side at
+startup only — it is never sent to the browser.
 
-## Build Container (Multi-platform)
+## Build the image
 
-1. Build the Docker image for multiple platforms and push to a container registry:
+```bash
+# single platform
+docker build -t whereami .
+docker run --rm -it -p 8000:8080 whereami
 
-   ```bash
-   docker buildx create --use
-   docker buildx build --pull --rm --push --platform linux/amd64,linux/arm64 -t your-registry/whereami:latest .
-   ```
+# multi-platform → registry
+docker buildx build --push --platform linux/amd64,linux/arm64 \
+  -t your-registry/whereami:latest .
+```
 
-1. Run the Docker container:
+## Tech
 
-   ```bash
-   docker run --rm -it -p 8000:80 your-registry/whereami:latest
-   ```
+React 19 · Vite 6 · non-root nginx · Docker · Kubernetes
 
 ## License
 
-MIT License - See the [LICENSE](LICENSE) file for details.
+[MIT](LICENSE).
