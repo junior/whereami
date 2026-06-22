@@ -5,7 +5,8 @@ metadata:
   labels:
     app: whereami
 spec:
-  ingressClassName: nginx
+  # Uses the cluster's default IngressClass for portability. If your cluster has no
+  # default, set `ingressClassName:` to match your controller (nginx, traefik, alb, …).
   rules:
   - host: whereami.example.com
     http:
