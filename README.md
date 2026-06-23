@@ -30,7 +30,7 @@ docker run --rm -it -p 8000:8080 ghcr.io/junior/whereami
 With your own ipinfo.io token (higher rate limits):
 
 ```bash
-docker run --rm -it -p 8000:8080 -e IPINFO_TOKEN=your_token ghcr.io/junior/whereami
+docker run --rm -it -p 8000:8080 -e IPINFO_TOKEN=<your-ipinfo-token> ghcr.io/junior/whereami
 ```
 
 ## Development
@@ -65,14 +65,14 @@ kubectl apply -f https://raw.githubusercontent.com/junior/whereami/main/k8s/ingr
 To pass an ipinfo.io token, create a Secret (the Deployment reads it, `optional: true`):
 
 ```bash
-kubectl create secret generic whereami --from-literal=ipinfo-token=your_token
+kubectl create secret generic whereami --from-literal=ipinfo-token=<your-ipinfo-token>
 ```
 
 ## Configuration
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `IPINFO_TOKEN` | _(empty)_ | ipinfo.io API token to raise the request rate limit. Unauthenticated works for light use. |
+| `IPINFO_TOKEN` | _(empty)_ | ipinfo.io API token for higher rate limits. Empty **or invalid** falls back to the free (unauthenticated) lookup. |
 
 The container listens on **8080** as a non-root user. The token is used server-side at
 startup only — it is never sent to the browser.

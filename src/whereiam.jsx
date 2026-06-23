@@ -18,12 +18,15 @@ export default function WhereIAm() {
       });
   }, []);
 
-  if (error) {
+  const failure = error || (ipInfo && ipInfo.error);
+  if (failure) {
+    const detail =
+      (ipInfo && ipInfo.error) || "The IP lookup is unavailable right now.";
     return (
       <div className="card mb-4">
         <div className="info box pulse">
           <h3 className="card-title">Could not determine location</h3>
-          <p>The IP lookup is unavailable right now.</p>
+          <p>{detail}</p>
         </div>
       </div>
     );
