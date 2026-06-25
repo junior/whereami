@@ -17,8 +17,8 @@ tells you where it landed.
 At container start, [`entrypoint.sh`](entrypoint.sh) fetches the server's public IP details
 from [ipinfo.io](https://ipinfo.io) into a static `ipinfo.json`. The React app reads that file
 and maps the network's AS number to a provider logo (Oracle, AWS, Azure, Akamai, Cloudflare,
-…). If the lookup fails (offline, rate-limited), a bundled placeholder is served so the app
-still starts instead of crash-looping.
+…). An invalid token falls back to the free (unauthenticated) lookup; if that also fails
+(offline), the app shows a clear error rather than misleading data.
 
 ## Quickstart (Docker)
 
@@ -73,9 +73,49 @@ kubectl create secret generic whereami --from-literal=ipinfo-token=<your-ipinfo-
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `IPINFO_TOKEN` | _(empty)_ | ipinfo.io API token for higher rate limits. Empty **or invalid** falls back to the free (unauthenticated) lookup. |
+| `WHEREAMI_CA_CERT` | _(empty)_ | path to a mounted CA cert to trust for the ipinfo call — for corporate TLS-intercepting (MITM) proxies. `CURL_CA_BUNDLE` works too. |
+| `HTTPS_PROXY` · `NO_PROXY` | _(empty)_ | standard proxy env, honored by the ipinfo lookup. |
 
 The container listens on **8080** as a non-root user. The token is used server-side at
 startup only — it is never sent to the browser.
+
+## Behind a corporate proxy / MITM (optional)
+
+If outbound HTTPS is intercepted by a corporate proxy that re-signs TLS, the ipinfo.io call
+fails certificate verification until the container trusts your corporate root CA. Mount it and
+point `WHEREAMI_CA_CERT` (or the standard `CURL_CA_BUNDLE`) at it — the lookup uses `curl`, so
+`HTTPS_PROXY` / `NO_PROXY` are honored automatically too.
+
+**Docker:**
+
+```bash
+docker run --rm -it -p 8000:8080 \
+  -v /path/to/corp-ca.crt:/etc/whereami-ca/ca.crt:ro \
+  -e WHEREAMI_CA_CERT=/etc/whereami-ca/ca.crt \
+  ghcr.io/junior/whereami
+```
+
+**Kubernetes** — put the CA in a ConfigMap, mount it read-only, and set the env:
+
+```bash
+kubectl create configmap whereami-ca --from-file=ca.crt=/path/to/corp-ca.crt
+```
+
+```yaml
+    spec:
+      containers:
+        - name: whereami
+          env:
+            - name: WHEREAMI_CA_CERT
+              value: /etc/whereami-ca/ca.crt
+          volumeMounts:
+            - name: corp-ca
+              mountPath: /etc/whereami-ca
+              readOnly: true
+      volumes:
+        - name: corp-ca
+          configMap: { name: whereami-ca }
+```
 
 ## Build the image
 

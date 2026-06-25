@@ -4,7 +4,15 @@ set -eu
 OUT=/tmp/ipinfo.json    # writable at runtime; what nginx serves (read-only-rootfs friendly)
 TMP="${OUT}.tmp"
 
-fetch() { wget -q -T 10 -O "$TMP" "$1"; }
+# curl (not busybox wget) so corporate proxies (HTTPS_PROXY) and a custom / MITM CA work:
+# set WHEREAMI_CA_CERT (or the standard CURL_CA_BUNDLE) to a mounted corporate root CA.
+fetch() {
+  if [ -n "${WHEREAMI_CA_CERT:-}" ]; then
+    curl -fsS --max-time 10 --cacert "$WHEREAMI_CA_CERT" -o "$TMP" "$1"
+  else
+    curl -fsS --max-time 10 -o "$TMP" "$1"
+  fi
+}
 
 # Look up the server's IP info. Try the authenticated endpoint first, then fall back to
 # the free (no-token) one — so a missing or INVALID IPINFO_TOKEN still yields real data

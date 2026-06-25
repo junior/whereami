@@ -33,6 +33,11 @@ spec:
                   name: whereami
                   key: ipinfo-token
                   optional: true
+            # Behind a TLS-intercepting (MITM) proxy? Trust your corporate CA for the ipinfo
+            # call — mount it (commented volume below) and uncomment this:
+            #   kubectl create configmap whereami-ca --from-file=ca.crt=corp-ca.crt
+            # - name: WHEREAMI_CA_CERT
+            #   value: /etc/whereami-ca/ca.crt
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -44,6 +49,9 @@ spec:
               mountPath: /tmp
             - name: nginx-cache
               mountPath: /var/cache/nginx
+            # - name: corp-ca            # pair with WHEREAMI_CA_CERT above
+            #   mountPath: /etc/whereami-ca
+            #   readOnly: true
           readinessProbe:
             httpGet:
               path: /
@@ -68,3 +76,5 @@ spec:
           emptyDir: {}
         - name: nginx-cache
           emptyDir: {}
+        # - name: corp-ca
+        #   configMap: { name: whereami-ca }
