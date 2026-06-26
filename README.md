@@ -149,4 +149,4 @@ React 19 · Vite 6 · non-root nginx · Docker · Kubernetes
 
 ## License
 
-[MIT](LICENSE).
+[MIT](LICENSE) — built by [Adao Oliveira Jr](https://adao.dev).

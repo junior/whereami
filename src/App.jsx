@@ -8,6 +8,12 @@ export default function App() {
         <h1>Where am I?</h1>
         <h3>MultiCloud demo</h3>
         <WhereIAm />
+        <footer className="by">
+          by{" "}
+          <a href="https://adao.dev" target="_blank" rel="noopener noreferrer">
+            adao.dev
+          </a>
+        </footer>
         <div className="cloud x1"></div>
         <div className="cloud x2"></div>
         <div className="cloud x3"></div>

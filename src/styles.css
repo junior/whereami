@@ -154,3 +154,21 @@ h3 {
       0 0 0 8px rgba(100, 222, 0, 0.25);
   }
 }
+
+/* subtle author credit — kept above the animated clouds so the link stays clickable */
+footer.by {
+  position: relative;
+  z-index: 1;
+  margin-top: 28px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+footer.by a {
+  color: #0f5c53;
+  text-decoration: none;
+}
+
+footer.by a:hover {
+  text-decoration: underline;
+}

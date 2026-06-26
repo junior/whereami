@@ -10,6 +10,12 @@ RUN npm run build
 
 # --- serve it with a non-root nginx (listens on 8080 as uid 101) ---
 FROM nginxinc/nginx-unprivileged:alpine AS runtime
+LABEL org.opencontainers.image.title="whereami" \
+      org.opencontainers.image.description="MultiCloud demo — a React app that shows which cloud it is running in" \
+      org.opencontainers.image.authors="Adao Oliveira Jr" \
+      org.opencontainers.image.url="https://adao.dev" \
+      org.opencontainers.image.source="https://github.com/junior/whereami" \
+      org.opencontainers.image.licenses="MIT"
 USER root
 # curl handles corporate proxies (HTTPS_PROXY) and custom / MITM CAs (CURL_CA_BUNDLE) cleanly
 RUN apk add --no-cache curl ca-certificates
