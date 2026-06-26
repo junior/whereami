@@ -37,6 +37,9 @@ export const PROVIDERS = [
   { asns: ["209", "3356"], rx: /centurylink|lumen|level ?3|qwest/i, logo: "centurylink.svg" },
   { asns: ["16591"], rx: /google fiber/i, logo: "googlefiber.svg" },
 
+  // ---- enterprise / corporate ----
+  { asns: ["3614", "3612", "3613", "3615", "30614", "38057", "46507", "59915", "132711"], rx: /\bdell/i, logo: "dell.svg" },
+
   // ---- personal easter-eggs (Oracle CloudWorld) ----
   { asns: ["1215"], rx: null, logo: "oracle_corp.png" }, //   Oracle corporate
   { asns: ["27496"], rx: /venetian/i, logo: "venetian.png" }, // CloudWorld venue

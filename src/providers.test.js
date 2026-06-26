@@ -48,6 +48,12 @@ describe("getCloudProvider", () => {
     }
   });
 
+  it("matches Dell corporate networks by ASN and name", () => {
+    expect(getCloudProvider("AS3614 Dell, Inc.")).toBe("dell.svg");
+    expect(getCloudProvider("AS30614 Dell, Inc.")).toBe("dell.svg");
+    expect(getCloudProvider("AS99999 Dell Technologies")).toBe("dell.svg");
+  });
+
   it("falls back to a name match when the ASN is unknown", () => {
     expect(getCloudProvider("AS99999 Amazon data services")).toBe("aws.png");
     expect(getCloudProvider("AS99999 Google Fiber Inc.")).toBe("googlefiber.svg");
