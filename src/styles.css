@@ -172,3 +172,16 @@ footer.by a {
 footer.by a:hover {
   text-decoration: underline;
 }
+
+.cloudlogo {
+  margin-top: 14px;
+}
+
+/* Logos range from square icons to wide wordmarks; fit them all into one
+   consistent box, preserving aspect ratio, without overflow or distortion. */
+.cloudlogo img {
+  height: 96px;
+  width: auto;
+  max-width: min(320px, 82vw);
+  object-fit: contain;
+}

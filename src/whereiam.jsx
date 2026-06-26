@@ -53,7 +53,7 @@ export default function WhereIAm() {
         <p className="card-text">Service Host: {ipInfo.hostname}</p>
       </div>
       <div className="cloudlogo">
-        <img src={getCloudProvider(ipInfo.org)} alt="Cloud provider logo" height="100" />
+        <img src={getCloudProvider(ipInfo.org)} alt="Cloud provider logo" />
       </div>
     </div>
   );
